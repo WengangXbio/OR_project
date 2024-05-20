@@ -24,3 +24,23 @@ G1(S7)/ G3(S7*)
 #### minigraph cannot produce correct graph, therefore PGGB is selected for following studies as trails
 
 ### 2. odgi functions
+#### [odgi practices](https://odgi.readthedocs.io/en/latest/rst/tutorials/injecting_gene_arrows.html) 
+```
+odgi build -t 4 -P -g final.gfa -o final.og -O                 ### gfa -> og format
+odgi stats -i final.og -S -W -b |column -t > final.stat        ### stat of graph
+odgi paths -i final.og -L > final.path                         ### display all path in graph
+odgi depth -i final.og -d > final.node.depth                   ### calculate all node depth
+odgi extract -i final.og -o final.extract.og -b extract.bed -c 0 -E --threads 2 -P  ### extract graph by bed
+odgi procbed -i final.gfa -b final.bed > final.adj.bed         ### adjust bed in cooresponding graph
+odgi inject -i final.gfa -b final.bed -o final.inj.og          ### inject bed in cooresponding graph
+
+### calculate depth by windows
+odgi depth -i chr8.pan.og -r chm13#chr8 | bedtools makewindows -b /dev/stdin -w 5000 > chm13.chr8.w5kbps.bed
+odgi depth -i chr8.pan.og -b chm13.chr8.w5kbps.bed --threads 2 |bedtools sort > chr8.pan.depth.w5kbps.bed
+
+### visulize 1D graph
+odgi sort -i final_unsorted.og --threads 2 -P -Y -o final_sorted.og
+odgi viz -i final_sorted.og -o final_sorted.png
+
+
+```
