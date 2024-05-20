@@ -7,6 +7,16 @@ sed "s/INPUT/${genome}/g" genome2OR.sh | sed "s/OUTPUT/${outdir}/g" > ${genome}.
 csub < ${genome}.sh
 done
 ```
+### Convert genome2OR results into bed
+```
+for genome in `ls *.fna`  ; do
+samtools faidx ${genome}.g2or/ORannotation_itera2_final_func_dna_ORs.fasta 
+awk -F'_' 'BEGIN{OFS="\t"} {print $2,$3,$4,$5}' ${genome}.g2or/ORannotation_itera2_final_func_dna_ORs.fasta.fai |sort -k1,1 -k2,2n > ${genome}.g2or/ORannotation_itera2_final_func_dna_ORs.bed
+sh modify_coor.sh ${genome}.g2or/ORannotation_itera2_final_func_dna_ORs.bed ${genome}.g2or/ORannotation_itera2_final_func_dna_ORs.modify.bed
+sed "s/@#@/_/g" ${genome}.g2or/ORannotation_itera2_final_func_dna_ORs.modify.bed > ${genome}.g2or/ORannotation_GCF_002263795.3_interation.bed
+cp ${genome}.g2or/ORannotation_GCF_002263795.3_interation.bed ${genome}.g2or_itera2_func.bed
+done
+```
 ```
 [yzwl_zhangwg@mgt15 genome2OR]$ cat genome2OR.sh 
 #!/bin/bash
