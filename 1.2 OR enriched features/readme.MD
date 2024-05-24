@@ -1,5 +1,11 @@
 ## Genome-wide profiling based on pangenome and featured with OR regions
-
+#### PAV values
+<img src="https://github.com/WengangXbio/OR_project/blob/58db7d8d7afa3e12a93b9f000da8464eb4991e1e/1.2%20OR%20enriched%20features/figures/ORanno.PAV_value.png"> 
+#### node depth
+<img src="https://github.com/WengangXbio/OR_project/blob/464e5467046ef44cbbe444840b4fb273353d7d3c/1.2%20OR%20enriched%20features/figures/ORanno.node_depth.png"> 
+#### variant density on CDS
+<img src="https://github.com/WengangXbio/OR_project/blob/464e5467046ef44cbbe444840b4fb273353d7d3c/1.2%20OR%20enriched%20features/figures/ORanno.variants_CDS.png"> #### variant density
+<img src="https://github.com/WengangXbio/OR_project/blob/464e5467046ef44cbbe444840b4fb273353d7d3c/1.2%20OR%20enriched%20features/figures/ORanno.variants_whole.png"> 
 
 ### window depth by 10K window project on ARS2.0 
 ```
