@@ -70,7 +70,7 @@ done
 
 
 wd="/share/home/yzwl_zhangwg/OR_project/PGGB/pan_by_chr_new"
-for i in `seq 30 31`  ; do
+for i in `seq 1 31`  ; do
 chrn=chr$i
 mkdir $wd/$chrn -p
 ass=$(awk -v a=$chrn '$1==a {print $2}' ARS20_chr_NC.info)
