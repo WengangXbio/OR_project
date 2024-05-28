@@ -17,6 +17,17 @@ sed "s/@#@/_/g" ${genome}.g2or/ORannotation_itera2_final_func_dna_ORs.modify.bed
 cp ${genome}.g2or/ORannotation_GCF_002263795.3_interation.bed ${genome}.g2or_itera2_func.bed
 done
 ```
+### Convert genome2OR results into bed (pseudogenes)
+```
+for genome in `ls *.fna`  ; do
+cat ${genome}.g2or/ORannotation_itera2_final_pseu_ORs.fasta ${genome}.g2or/ORannotation_itera2_final_low-quality.fasta > ${genome}.g2or/ORannotation_itera2_final_dead.fasta
+samtools faidx ${genome}.g2or/ORannotation_itera2_final_dead.fasta
+awk -F'_' 'BEGIN{OFS="\t"} {print $1,$2,$3,$4}' ${genome}.g2or/ORannotation_itera2_final_dead.fasta.fai |sort -k1,1 -k2,2n > ${genome}.g2or/ORannotation_itera2_final_dead.bed
+sh modify_coor.sh ${genome}.g2or/ORannotation_itera2_final_dead.bed ${genome}.g2or/ORannotation_itera2_final_dead.modify.bed
+sed "s/@#@/_/g" ${genome}.g2or/ORannotation_itera2_final_dead.modify.bed |sed 's/-|-/-/g' | sed 's/+|+/+/g' | sed 's/-|+/+/g' | sed 's/+|-/+/g' > ${genome}.g2or/ORannotation_dead_GCF_002263795.3_interation.bed
+cp ${genome}.g2or/ORannotation_dead_GCF_002263795.3_interation.bed ${genome}.dead.g2or_itera2_func.bed
+done
+```
 ```
 [yzwl_zhangwg@mgt15 genome2OR]$ cat genome2OR.sh 
 #!/bin/bash
