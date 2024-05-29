@@ -22,3 +22,4 @@ outdf=rbind(outdf,data.frame(fna,seq,start,end,chr))
 }
 outdf=outdf[-1,]
 write.table(outdf,"kmap1.merge",quote=F,sep = "\t",col.names=F, row.names=F)
+
