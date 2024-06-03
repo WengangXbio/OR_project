@@ -65,6 +65,27 @@ fi
 cd ..
 done
 ```
+#### Collapsing coordinates is slow when OR is highly enriched in certain chromosome (e.g. chromosome 15), running large collasping scripts as follow
+```
+for iseq in `cat inputseq` ; do
+mkdir ${iseq}_collaspe 
+cd ${iseq}_collaspe 
+cp /share/home/yzwl_zhangwg/OR_project/PGGB/script/collaspe_untangle.sh collaspe_untangle.sh 
+cp /share/home/yzwl_zhangwg/OR_project/PGGB/script/large_collaspe.sh large_collaspe.sh
+cp ../injref.untangle.tsv ./
+echo $iseq > inputseq
+csub < large_collaspe.sh
+cd ..
+done
+```
+```
+echo > collection 
+for splitfile in `ls -l ./ | grep '^d' | grep "_collaspe" | awk '{print $9}'`; do
+cat collection ${splitfile}/injref.untangle.tsv.collapse > temp
+mv temp collection
+done
+mv collection injref.untangle.tsv.collapse
+```
 
 
 
