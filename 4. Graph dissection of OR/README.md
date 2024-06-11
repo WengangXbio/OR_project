@@ -88,5 +88,59 @@ mv collection injref.untangle.tsv.collapse
 ```
 
 
-
-
+### MC-based graph
+#### To dissect graph of OR regions, there are 4 steps
+#### Processing OR annotations by adjusting coordinates, and create projection of OR among assemblies
+```
+for NC in `cut -f1 ref.info |awk -F"#" '{print $3}'` ; do
+if [ -s "./${NC}.func.proc.bed" ]; then
+mkdir chr_${NC} -p
+cd chr_${NC}
+ln -s /public/home/qtyao/WZ_data_transfer/cactus/bos/work/cattle31.${NC}.full.og ./
+cp /public/home/qtyao/WZ_data_transfer/cactus/bos/work/${NC}.dead.proc.bed ./
+cp /public/home/qtyao/WZ_data_transfer/cactus/bos/work/${NC}.func.proc.bed ./
+cp /public/home/qtyao/WZ_data_transfer/cactus/bos/work/projection.sh ./
+sed -i "s/OMG/${NC}/g" projection.sh
+bsub < projection.sh
+cd ..
+else 
+   echo "${NC} is blank"
+fi 
+done
+```
+#### Adjusting OR projections by collapsing coordinates
+```
+for NC in `cut -f1 ref.info |awk -F"#" '{print $3}' ` ; do
+nchr=$(awk -v a=${NC} '$2==a {print $1}' seq.txt)
+cd chr_${NC}
+if [ -s "./injref.untangle.tsv" ]; then
+sed "s/NNNCCC/$NC/g" ../wrap.sh | sed "s/NCHRNUM/$nchr/g" > wrap.sh
+bsub -J wrap -n 2 -R "span[hosts=1] rusage[mem=4GB]" -o %J.out -e %J.err -q normal \
+"
+sh wrap.sh
+"
+else 
+   echo "${NC} is blank"
+fi 
+cd /public/home/qtyao/WZ_data_transfer/cactus/bos/work
+done
+```
+#### Counting OR dosages and living or dead
+```
+cat genomelist | tr '\n' '\t' > or.counts.matrix0.collection
+cat genomelist | tr '\n' '\t' > or.pseudo.matrix0.collection
+printf '\n' >> or.counts.matrix0.collection
+printf '\n' >> or.pseudo.matrix0.collection
+for NC in `cut -f1 ref.info |awk -F"#" '{print $3}'` ; do
+cd chr_${NC}
+if [ -s "./or.counts.matrix0" ]; then
+sed '1d' or.counts.matrix0 |cat ../or.counts.matrix0.collection - > ../temp
+mv ../temp ../or.counts.matrix0.collection
+sed '1d' or.pseudo.matrix0 |cat ../or.pseudo.matrix0.collection - > ../temp
+mv ../temp ../or.pseudo.matrix0.collection
+else 
+   echo "chr${nchr} is blank"
+fi
+cd /public/home/qtyao/WZ_data_transfer/cactus/bos/work
+done
+```
