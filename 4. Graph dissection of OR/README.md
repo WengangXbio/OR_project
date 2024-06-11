@@ -125,12 +125,33 @@ fi
 cd /public/home/qtyao/WZ_data_transfer/cactus/bos/work
 done
 ```
-#### Counting OR dosages and living or dead
+#### PAV in graph
+```
+for NC in `cut -f1 ref.info |awk -F"#" '{print $3}' ` ; do
+nchr=$(awk -v a=${NC} '$2==a {print $1}' seq.txt)
+cd chr_${NC}
+if [ -s "./injref.untangle.tsv" ]; then
+sed "s/NNNCCC/$NC/g" ../wrapPAV.sh | sed "s/NCHRNUM/$nchr/g" > wrapPAV.sh
+cp ../PAV_count.sh ./PAV_count.sh
+bsub -J PAV -n 2 -R "span[hosts=1] rusage[mem=4GB]" -o %J.out -e %J.err -q normal \
+"
+sh wrapPAV.sh
+"
+else 
+   echo "${NC} is blank"
+fi 
+cd /public/home/qtyao/WZ_data_transfer/cactus/bos/work
+done
+```
+
+#### Collection of all matrix
 ```
 cat genomelist | tr '\n' '\t' > or.counts.matrix0.collection
 cat genomelist | tr '\n' '\t' > or.pseudo.matrix0.collection
+cat genomelist | tr '\n' '\t' > or.PAV.matrix0.collection
 printf '\n' >> or.counts.matrix0.collection
 printf '\n' >> or.pseudo.matrix0.collection
+printf '\n' >> or.PAV.matrix0.collection
 for NC in `cut -f1 ref.info |awk -F"#" '{print $3}'` ; do
 cd chr_${NC}
 if [ -s "./or.counts.matrix0" ]; then
@@ -138,6 +159,8 @@ sed '1d' or.counts.matrix0 |cat ../or.counts.matrix0.collection - > ../temp
 mv ../temp ../or.counts.matrix0.collection
 sed '1d' or.pseudo.matrix0 |cat ../or.pseudo.matrix0.collection - > ../temp
 mv ../temp ../or.pseudo.matrix0.collection
+sed '1d' or.PAV.matrix0 |cat ../or.PAV.matrix0.collection - > ../temp
+mv ../temp ../or.PAV.matrix0.collection
 else 
    echo "chr${nchr} is blank"
 fi
