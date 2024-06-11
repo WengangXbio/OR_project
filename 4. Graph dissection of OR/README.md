@@ -2,6 +2,7 @@
 ### PGGB-based graph
 #### To dissect graph of OR regions, there are 4 steps
 #### Processing OR annotations by adjusting coordinates, and create projection of OR among assemblies
+modify the path in preperation.sh file
 ```
 for nchr in `seq 1 29` ; do
 mkdir chr${nchr} -p
