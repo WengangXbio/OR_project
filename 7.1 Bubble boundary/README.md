@@ -1,5 +1,34 @@
 ## Extract bubble's boundary sequence
-### Add OR's ID and bubble's length in "all_bubble.ORgt"
+### 1. Extract projection region in graph
+```
+cut -f1 all_bubble.ORgt |uniq |while IFS= read -r vcfid; do
+chr=$(awk -v a=$vcfid '$3==a' all.sv.vcf0.vg.correction.vcf0 |awk '{print $1}')
+pos=$(awk -v a=$vcfid '$3==a' all.sv.vcf0.vg.correction.vcf0 |awk '{print $2}')
+length=$(awk -v a=$vcfid '$3==a' all.sv.vcf0.vg.correction.vcf0 |awk '{print $4}' |wc -m |awk '{print $1}')
+seq=$(grep $chr /public/home/qtyao/WZ_data_transfer/cactus/bos/work/cattle31.${chr}.full.og.L)
+up1=$(($pos-2000))
+down1=$(($pos+$length))
+down2=$(($down1+2000))
+echo -e "$seq\t$up1\t$pos\t$vcfid"_up""    >> ${chr}.bed
+echo -e "$seq\t$down1\t$down2\t$vcfid"_down""  >> ${chr}.bed
+done 
+
+
+chr="NC_037357 NC_037356 NC_037355 NC_037352 NC_037351 NC_037350 NC_037346 NC_037343 NC_037342 NC_037338 NC_037337 NC_037336 NC_037335 NC_037334 NC_037332 NC_037331 NC_037328"
+for seq in `echo $chr |tr ' ' '\n' ` ; do
+bsub -J odgi -n 4 -R "span[hosts=1] rusage[mem=10GB] select[maxmem>200GB]" -o %J.out -e %J.err -q smp \
+"
+odgi inject -i /public/home/qtyao/WZ_data_transfer/cactus/bos/work/cattle31.${seq}.1.full.og -t 4 -b ${seq}.1.bed -o ${seq}.1.inj.og -t 10
+cut -f4 ${seq}.1.bed > ${seq}.1.name
+odgi untangle -R ${seq}.1.name -i ${seq}.1.inj.og -g -j 0.1 -n 100 -t 4 > ${seq}.1.untangle.tsv
+"
+done
+
+
+```
+
+
+### 2.Add OR's ID and bubble's length in "all_bubble.ORgt"
 ```
 cut -f1 all_bubble.ORgt |uniq |while IFS= read -r vcfid; do
 awk -v a=$vcfid '$1==a'  all_bubble.ORgt |cut -f3 |sort |uniq |while IFS= read -r gt; do
@@ -21,7 +50,7 @@ rm all_bubble.ORgt.withID.temp
 done > all_bubble.ORgt.withID.withLen
 ```
 
-### Extract OR bubble's syntenic regions across 31 cattle assemblies
+### 3.Extract OR bubble's syntenic regions across 31 cattle assemblies
 The strategy is：
 
 1. Looking for syntenic regions of bubbles for each 31 cattle genomes based on MC graph, if there are satisified projections, take the coordinates;
