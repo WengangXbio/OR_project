@@ -54,13 +54,13 @@ beg=$(($beg + $adj - 2000))
 end=$(($end + $adj + 2000))
 nonchr=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F':' '{print $4}' |sed 's/_[^_]*$//')
 strand=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F':' '{print $3}')
+gvd=$(grep $ind gtass.tmp |awk '{print "GT"$2}')
 orid=$(awk -v a=$vcfid -v b=$gvd '$1==a && $2==b {print $4}' all_bubble.ORgt.withID.withLen)
 if [ "$strand" == "-" ]; then
 strand=0
 elif [ "$strand" == "+" ]; then
 strand=1
 fi
-gvd=$(grep $ind gtass.tmp |awk '{print "GT"$2}')
 aa=$(awk -v a=$gvd -v b=$vcfid '$1==b && $2==a {print $5}' all_bubble.ORgt.withID.withLen)
 echo -e "$nonchr\t$beg\t$end\t$ind\t$strand\t$orid\t$gvd\t$aa\tminigraph"
 else
