@@ -57,6 +57,7 @@ The strategy is：
 2. If they are bad projections, take minigraph projection as coordinates;
 3. Check bubbles's length, which should equal to projection range as above, if the projection range and bubbles length have a difference over 500 bp and difference/length(bubble) >0.1, discard this projection
 ```
+cd /public/home/qtyao/WZ_data_transfer/minigraph/5.bubble_boundary
 echo "" > Problematic.txt
 cut -f1 all_bubble.ORgt.withID.withLen |uniq | while IFS= read -r vcfid; do
 	#vcfid=NC_037342.1_78376718
@@ -76,13 +77,13 @@ dwchr=$(awk -v a=$downid '$2==a' ${chr}.untangle.tsv |grep $ind |awk -F'#' '{pri
 upstd=$(awk -v a=$upid '$2==a' ${chr}.untangle.tsv |grep $ind |awk '{print $5}')
 dwstd=$(awk -v a=$downid '$2==a' ${chr}.untangle.tsv |grep $ind |awk '{print $5}')
 if [[ "$upl" != 1 || "$dwl" != 1 || "$upchr" != "$dwchr" || "$upstd" != "$dwstd" ]] ; then
-adj=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $(NF-2)}')
-beg=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $(NF-1)}')
-end=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $NF}')
+adj=$(awk -v a=$pos '$2==a' ../../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $(NF-2)}')
+beg=$(awk -v a=$pos '$2==a' ../../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $(NF-1)}')
+end=$(awk -v a=$pos '$2==a' ../../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $NF}')
 beg=$(($beg + $adj - 2000))
 end=$(($end + $adj + 2000))
-nonchr=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F':' '{print $4}' |sed 's/_[^_]*$//')
-strand=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F':' '{print $3}')
+nonchr=$(awk -v a=$pos '$2==a' ../../1.minigraph/${chr}/${ind}.bed |awk -F':' '{print $4}' |sed 's/_[^_]*$//')
+strand=$(awk -v a=$pos '$2==a' ../../1.minigraph/${chr}/${ind}.bed |awk -F':' '{print $3}')
 gvd=$(grep $ind gtass.tmp |awk '{print "GT"$2}')
 orid=$(awk -v a=$vcfid -v b=$gvd '$1==a && $2==b {print $4}' all_bubble.ORgt.withID.withLen)
 if [ "$strand" == "-" ]; then
@@ -116,13 +117,13 @@ awk 'BEGIN{OFS="\t"} {print ($8 > ($3-$2-4000)) ? ($8 - ($3-$2-4000) ) : (($3-$2
 cat problem >> Problematic.txt
 grep -v -f problem projection.sort.bed > projection.sort.filter.bed
 for ind in `awk '$9=="MC" {print $4}' problem` ; do
-adj=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $(NF-2)}')
-beg=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $(NF-1)}')
-end=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $NF}')
+adj=$(awk -v a=$pos '$2==a' ../../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $(NF-2)}')
+beg=$(awk -v a=$pos '$2==a' ../../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $(NF-1)}')
+end=$(awk -v a=$pos '$2==a' ../../1.minigraph/${chr}/${ind}.bed |awk -F'[_:]' '{print $NF}')
 beg=$(($beg + $adj - 2000))
 end=$(($end + $adj + 2000))
-nonchr=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F':' '{print $4}' |sed 's/_[^_]*$//')
-strand=$(awk -v a=$pos '$2==a' ../1.minigraph/${chr}/${ind}.bed |awk -F':' '{print $3}')
+nonchr=$(awk -v a=$pos '$2==a' ../../1.minigraph/${chr}/${ind}.bed |awk -F':' '{print $4}' |sed 's/_[^_]*$//')
+strand=$(awk -v a=$pos '$2==a' ../../1.minigraph/${chr}/${ind}.bed |awk -F':' '{print $3}')
 gvd=$(grep $ind gtass.tmp |awk '{print "GT"$2}')
 orid=$(awk -v a=$vcfid -v b=$gvd '$1==a && $2==b {print $4}' all_bubble.ORgt.withID.withLen)
 if [ "$strand" == "-" ]; then
@@ -136,7 +137,7 @@ done |awk 'BEGIN{OFS="\t"} {print ($8 > ($3-$2-4000)) ? ($8 - ($3-$2-4000) ) : (
 rm problem gtass.tmp
 sort -k6,6 projection.sort.filter.bed > projection.sort.filter.bed0
 
-echo "" > boundary_2000_sequence/${vcfid}.sequence.fasta
+echo "" > boundary_5000_sequence/${vcfid}.sequence.fasta
 poly=$(cut -f6 projection.sort.filter.bed0 |sort |uniq |wc -l)
 if [ $poly -lt 2 ]; then
 echo "Problematic: less_polymorphism: $vcfid" >> Problematic.txt
@@ -155,8 +156,125 @@ else
 	cat fasta.tmp
 fi
 rm fasta.tmp
-done  >> boundary_2000_sequence/${vcfid}.sequence.fasta
+done  >> boundary_5000_sequence/${vcfid}.sequence.fasta
 rm  projection.sort.bed projection.sort.filter.bed0
 fi
 done
+```
+
+### 4. Extract break point ± 100 bp sequence, including two insertion boundaries and one deletion boundary
+```
+for vcfid in `ls *.mafft.aln |awk -F".sequence" '{print $1}'` ; do
+mkdir ${vcfid}
+mv ${vcfid}.sequence.fasta ${vcfid}.sequence.fasta.mafft.aln ${vcfid}
+cp process_seq.sh boundary_detection.sh run_boundary.sh ${vcfid}
+cd /public/home/qtyao/WZ_data_transfer/minigraph/5.bubble_boundary/boundary_2000_sequence/${vcfid}
+sed 's/-/N/g' ${vcfid}.sequence.fasta.mafft.aln > ${vcfid}.sequence.fasta.mafft.aln.fasta
+~/WZ_data_transfer/tools/minimap2/minimap2 -cx asm20 ../all.coding.cdhit98.rename.fasta ${vcfid}.sequence.fasta.mafft.aln.fasta  > ${vcfid}.sequence.fasta.mafft.aln.fasta.paf 
+seqkit seq  ${vcfid}.sequence.fasta.mafft.aln -w 1000000 > ${vcfid}.sequence.fasta.mafft.aln.fasta.linear
+awk 'BEGIN{OFS="\t"} {print $1,$3,$4}' ${vcfid}.sequence.fasta.mafft.aln.fasta.paf  |bedtools sort -i - |bedtools merge -i - |\
+awk -v a=$vcfid 'BEGIN{OFS="\t"} {print a,$2,$3,$1}' |bedtools sort -i - |bedtools merge -i - -c 4 -o collapse | awk 'BEGIN{OFS="\t"} $3-$2 > 700 {print $1,$2,$3,$4}' > ${vcfid}.OR.bed
+grep "^>" ${vcfid}.sequence.fasta |awk -F'>' '{print $2}' > ${vcfid}.sequence.fasta.name
+cat ${vcfid}.OR.bed |while IFS= read -r line; do
+del=$(echo $line |awk '{print $4}' |tr ',' '\n' | grep -v -f - ${vcfid}.sequence.fasta.name |tr '\n' ',' |sed 's/,$//')
+echo $line $del
+done |awk '$4 !="" && $5 !=""' > ${vcfid}.OR.bed.anno
+bsub -J boundary -n 2 -R "span[hosts=1] rusage[mem=4GB]" -o %J.out -e %J.err -q normal \
+"
+sh ./run_boundary.sh ${vcfid}
+"
+cd /public/home/qtyao/WZ_data_transfer/minigraph/5.bubble_boundary/boundary_2000_sequence
+done
+```
+
+### 5. Calculate boundary's simialarity
+```
+for id in `cut -f1 combined_boundary.seq.fai |awk -F':' '{print $2":"$3":"$4}' |uniq`; do
+
+ins1up=$(grep ${id} combined_boundary.seq.fai |grep "^ins_b1" |cut -f1 | ~/WZ_data_transfer/tools/seqtk-master/seqtk subseq combined_boundary.seq - |tail -n1 |cut -c 51-100)
+ins2up=$(grep ${id} combined_boundary.seq.fai |grep "^ins_b2" |cut -f1 | ~/WZ_data_transfer/tools/seqtk-master/seqtk subseq combined_boundary.seq - |tail -n1 |cut -c 51-100)
+delup=$(grep ${id} combined_boundary.seq.fai |grep "^del" |cut -f1 | ~/WZ_data_transfer/tools/seqtk-master/seqtk subseq combined_boundary.seq -    |tail -n1 |cut -c 51-100)
+
+ins1dw=$(grep ${id} combined_boundary.seq.fai |grep "^ins_b1" |cut -f1 | ~/WZ_data_transfer/tools/seqtk-master/seqtk subseq combined_boundary.seq - |tail -n1 |cut -c 101-150)
+ins2dw=$(grep ${id} combined_boundary.seq.fai |grep "^ins_b2" |cut -f1 | ~/WZ_data_transfer/tools/seqtk-master/seqtk subseq combined_boundary.seq - |tail -n1 |cut -c 101-150)
+deldw=$(grep ${id} combined_boundary.seq.fai |grep "^del" |cut -f1 | ~/WZ_data_transfer/tools/seqtk-master/seqtk subseq combined_boundary.seq -    |tail -n1 |cut -c 101-150)
+
+ins1upn=$(echo $ins1up |grep -o "n" |wc -l)
+ins2upn=$(echo $ins2up |grep -o "n" |wc -l)
+delupn=$(echo $delup |grep -o "n" |wc -l )
+ins1dwn=$(echo $ins1dw |grep -o "n" |wc -l)
+ins2dwn=$(echo $ins2dw |grep -o "n" |wc -l)
+deldwn=$(echo $deldw |grep -o "n" |wc -l )
+
+if [ ${#ins1up} -gt 45 ] && [ ${#ins2up} -gt 45 ] && [ ${#delup} -gt 45 ] && [ ${#ins1dw} -gt 45 ] && [ ${#ins2dw} -gt 45 ] && [ ${#deldw} -gt 45 ] && [ ${#ins1upn} -lt 5 ] && [ ${#ins2upn} -lt 5 ] && [ ${#delupn} -lt 5 ] && [ ${#ins1dwn} -lt 5 ] && [ ${#ins2dwn} -lt 5 ] && [ ${#deldwn} -lt 5 ]; then
+echo -e ">ins1up\n$ins1up\n>delup\n$delup" > ins1up_delup.fasta
+mafft ins1up_delup.fasta  > ins1up_delup.fasta.aln
+match=$(seqkit seq  ins1up_delup.fasta.aln  -w 999 |grep -v "^>" | awk 'NR==1 {line1=$0} NR==2 {line2=$0} 
+     END {
+         count=0
+         len=length(line1)
+         for (i=1; i<=len; i++) {
+             if (substr(line1, i, 1) == substr(line2, i, 1)) {
+                 count++
+             }
+         }
+         print count
+     }' -)
+length=$(seqkit seq  ins1up_delup.fasta.aln  -w 999 |grep -v "^>" |head -1 |awk '{print length($0)}' )  
+ins1up_delupsim=$(echo "scale=2; $match / $length" | bc)
+
+echo -e ">ins1dw\n$ins1dw\n>deldw\n$deldw" > ins1dw_deldw.fasta
+mafft ins1dw_deldw.fasta  > ins1dw_deldw.fasta.aln
+match=$(seqkit seq  ins1dw_deldw.fasta.aln  -w 999 |grep -v "^>" | awk 'NR==1 {line1=$0} NR==2 {line2=$0} 
+     END {
+         count=0
+         len=length(line1)
+         for (i=1; i<=len; i++) {
+             if (substr(line1, i, 1) == substr(line2, i, 1)) {
+                 count++
+             }
+         }
+         print count
+     }' -)
+length=$(seqkit seq  ins1dw_deldw.fasta.aln  -w 999 |grep -v "^>" |head -1 |awk '{print length($0)}' )  
+ins1dw_deldwsim=$(echo "scale=2; $match / $length" | bc)
+
+echo -e ">ins2up\n$ins2up\n>delup\n$delup" > ins2up_delup.fasta
+mafft ins2up_delup.fasta  > ins2up_delup.fasta.aln
+match=$(seqkit seq  ins2up_delup.fasta.aln  -w 999 |grep -v "^>" | awk 'NR==1 {line1=$0} NR==2 {line2=$0} 
+     END {
+         count=0
+         len=length(line1)
+         for (i=1; i<=len; i++) {
+             if (substr(line1, i, 1) == substr(line2, i, 1)) {
+                 count++
+             }
+         }
+         print count
+     }' -)
+length=$(seqkit seq  ins2up_delup.fasta.aln  -w 999 |grep -v "^>" |head -1 |awk '{print length($0)}' )  
+ins2up_delupsim=$(echo "scale=2; $match / $length" | bc)
+
+
+echo -e ">ins2dw\n$ins2dw\n>deldw\n$deldw" > ins2dw_deldw.fasta
+mafft ins2dw_deldw.fasta  > ins2dw_deldw.fasta.aln
+match=$(seqkit seq  ins2dw_deldw.fasta.aln  -w 999 |grep -v "^>" | awk 'NR==1 {line1=$0} NR==2 {line2=$0} 
+     END {
+         count=0
+         len=length(line1)
+         for (i=1; i<=len; i++) {
+             if (substr(line1, i, 1) == substr(line2, i, 1)) {
+                 count++
+             }
+         }
+         print count
+     }' -)
+length=$(seqkit seq  ins2dw_deldw.fasta.aln  -w 999 |grep -v "^>" |head -1 |awk '{print length($0)}' )  
+ins2dw_deldwsim=$(echo "scale=2; $match / $length" | bc)
+
+echo $id $ins1up_delupsim $ins1dw_deldwsim $ins2up_delupsim $ins2dw_deldwsim
+else
+  echo -e "$id : Bad boundary"
+fi
+done > combined_boundary_similarity_50bp.results
 ```
