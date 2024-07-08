@@ -7,7 +7,7 @@ awk '{print ">GT"NR-1,$0}' seq.fasta |tr ' ' '\n' >  GTseq.fasta
 samtools faidx GTseq.fasta
 maxl=$(cut -f2 GTseq.fasta.fai |sort |tail -1)
 if [ $maxl -gt 500 ]; then
-~/WZ_data_transfer/tools/minimap2/minimap2 -cx asm5 all.coding.cdhit98.rename.fasta GTseq.fasta  > GTseq.fasta.paf
+minimap2 -cx asm5 all.coding.cdhit98.rename.fasta GTseq.fasta  > GTseq.fasta.paf
 pafl=$(cat GTseq.fasta.paf  |wc -l)
 if [ "$pafl" != 0 ]; then
 awk 'BEGIN{OFS="\t"} {print $1,$3,$4,$6}' GTseq.fasta.paf  |sort -k1,1 -k2,2n -k4,4 |bedtools merge -i - -c 4 -o collapse -delim "|" |awk '$3-$2>700' > aln.gt
