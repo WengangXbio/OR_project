@@ -1,5 +1,5 @@
 suffix=$1
-cat cattle31.raw.vcfbub.vcf.${suffix} |while IFS= read -r line; do
+cat cattle31.raw.vcfbub.vcf.diploid.noheader.removeN.vcf.${suffix} |while IFS= read -r line; do
 vcfid=$(echo $line |awk '{print $1"_"$2}')
 echo $line |awk '{print $4}' > seq.fasta
 echo $line |awk '{print $5}'|tr ',' '\n' >> seq.fasta
