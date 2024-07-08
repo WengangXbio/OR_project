@@ -1,6 +1,14 @@
+cd /share/home/yzwl_zhangwg/OR_project/MC-bos-31/pangenie/removeN
 grep -v "^#" cattle31.raw.vcfbub.vcf.diploid > cattle31.raw.vcfbub.vcf.diploid.noheader
-split -n l/150 cattle31.raw.vcfbub.vcf.diploid.noheader cattle31.raw.vcfbub.vcf.diploid.noheader
-ls cattle31.raw.vcfbub.vcf.diploid.noheader* | parallel -j 150 ./removeN.sh {}
+split -n l/150 ../cattle31.raw.vcfbub.vcf.diploid.noheader cattle31.raw.vcfbub.vcf.diploid.noheader
+for vcf in `cat list `; do
+bsub -J vcf -n 1 -R "span[hosts=1]" -o %J.out -e %J.err -q cpu \
+"
+./removeN.sh ${vcf}
+"
+done
+cat *.removeN > cattle31.raw.vcfbub.vcf.diploid.noheader.removeN
+grep "^#" ../cattle31.raw.vcfbub.vcf.diploid |cat - cattle31.raw.vcfbub.vcf.diploid.noheader.removeN > ../cattle31.raw.vcfbub.vcf.diploid.noheader.removeN.vcf
 
 #cat removeN.sh 
 input=$1
