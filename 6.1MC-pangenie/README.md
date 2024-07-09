@@ -1,23 +1,11 @@
-### 1.find OR's bubble in VCF file
-```
-split -n l/999 cattle31.raw.vcfbub.vcf cattle31.raw.vcfbub.vcf
+## MC + Pangenie workflow && dissection bubble with OR genes 
+### Note
+1. MC graph construction can be found [here](https://github.com/WengangXbio/OR_project/blob/main/6.1MC-pangenie/scripts/MC_construction.sh)
+2. MC produced a raw vcf with **nested bubble** and **haploid genotyping**, thus should be modified as overlapping variants with vcfbub and to be diploid with [shell scripts](https://github.com/WengangXbio/OR_project/blob/main/6.1MC-pangenie/scripts/vcf_modify.sh).
+3. Removing alternative genotype with sequence containing "N", using the [script here](https://github.com/WengangXbio/OR_project/blob/main/6.1MC-pangenie/scripts/removeN_vcf.sh)
+4. Modified vcf is indexed and run yazhouwan sever ([see scripts here](https://github.com/WengangXbio/OR_project/blob/main/6.1MC-pangenie/scripts/pangenie-index.sh)) and local server ([see scripts here](https://github.com/WengangXbio/OR_project/blob/main/6.1MC-pangenie/scripts/pangenie-index_local.sh))
+5. Find bubbles with OR genes with [script](https://github.com/WengangXbio/OR_project/blob/main/6.1MC-pangenie/scripts/find_OR_bubble.sh);
+6. Dissection OR bubbles including finding ortholog OR genes among alternative path and counting OR genes for each alternative path [see script here](https://github.com/WengangXbio/OR_project/blob/main/6.1MC-pangenie/scripts/OR_dosage_and_genotype.sh)
+7. Extract OR bubbles from pangenie output vcf ([script](https://github.com/WengangXbio/OR_project/blob/main/6.1MC-pangenie/scripts/OR_bubble_vcf_extraction.sh))
+8. 
 
-for suffix in `ls cattle31.raw.vcfbub.vcf* |awk -F'cattle31.raw.vcfbub.vcf' '{print $2}'|grep -v "^$"`; do
-mkdir ${suffix}
-cp cattle31.raw.vcfbub.vcf${suffix} all.coding.cdhit98.rename.fasta find_OR.sh ${suffix}/
-cd ${suffix}
-bsub -J findOR -n 2 -R "span[hosts=1]" -o %J.out -e %J.err -q cpu \
-"
-sh ./find_OR.sh ${suffix}
-"
-cd ..
-done
-```
-
-### 2. filter VCF with OR SV
-```
-cut -f1 combined.bubble.ORgt |sort |uniq | awk -F'_' 'BEGIN{OFS="\t"} {print $1"_"$2,$3,$3}' >  combined.bubble.ORgt.bed
-for id in `ls *vcf |awk -F'.' '{print $1}'`; do
-bedtools intersect -a ${id}.PanGenie_genotyping.vcf -b /share/home/yzwl_zhangwg/OR_project/MC-bos-31/openvcf/combined.bubble.ORgt.bed |cut -f1,2,10 |awk -F':' '{print $1}' >/share/home/yzwl_zhangwg/OR_project/MC-bos-31/filter_output/${id}.PanGenie_genotyping.vcf.or
-done
-```
