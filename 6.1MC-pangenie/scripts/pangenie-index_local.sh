@@ -1,0 +1,1 @@
+/home/zhangwengang/tools/pangenie-master/build/src/PanGenie-index -r ~/pangenome/assembly/GCF_002263795.3_ARS-UCD2.0_genomic.fna -v cattle31.raw.vcfbub.vcf.diploid.noheader.removeN.vcf -o preprocessing -e 100000 -t 16
