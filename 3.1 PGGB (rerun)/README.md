@@ -1,4 +1,4 @@
-
+cd /share/home/yzwl_zhangwg/OR_project/PGGB/pan_cattle31_new
 ### Hybird MC 
 ```
 for sequ in `seq 37328 37357`; do
