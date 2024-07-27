@@ -96,4 +96,18 @@ done
 mv collection injref.untangle.tsv.collapse
 ```
 
+### 3. Adjusting projections among coding ORs by collapsing coordinates
+```
+for nchr in `seq 1 30` ; do
+cd chr${nchr}
+if [ -s "./injref.untangle.tsv" ]; then
+cp /share/home/yzwl_zhangwg/OR_project/PGGB/pan_cattle31_new/work/coding_dosage.sh ./
+csub < coding_dosage.sh
+else 
+   echo "chr${nchr} is blank"
+fi
+cd ..
+done
+```
+
 
