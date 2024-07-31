@@ -110,4 +110,19 @@ cd ..
 done
 ```
 
-
+### 3.1 Running large collasping chromosome
+```
+for iseq in `cat inputseq_coding` ; do
+mkdir ${iseq}_collaspe 
+cd ${iseq}_collaspe 
+cp /share/home/yzwl_zhangwg/OR_project/PGGB/pan_cattle31_new/scripts/coding_dosage_single.sh ./
+cp /share/home/yzwl_zhangwg/OR_project/PGGB/pan_cattle31_new/scripts/collaspe_untangle.sh ./
+ln -s ../injref.untangle.tsv ./
+cp /share/home/yzwl_zhangwg/OR_project/PGGB/pan_cattle31_new/scripts/collaspe_untangle.sh collaspe_untangle.sh 
+cp /share/home/yzwl_zhangwg/OR_project/PGGB/pan_cattle31_new/scripts/large_collaspe.sh large_collaspe.sh
+echo $iseq > inputseq
+csub < coding_dosage_single.sh
+cd ..
+done
+find -name injref.untangle.tsv.coding.collapse | xargs cat > injref.untangle.tsv.coding.collapse
+```
