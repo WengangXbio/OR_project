@@ -83,4 +83,9 @@ done
 done
 ```
 
-
+### 3. Redefine OR orthology group
+Some orthology defined by graph is not accurate,  regroup OR by cd-hit cluster, 7 OR are regroup
+```
+cd /share/org/YZWL/yzwl_zhangwg/OR_project/1.pangenome/1.3bos_PGGB/pan_cattle31_new/new_work/3.classification
+```
+See "manual_anno.sh"
