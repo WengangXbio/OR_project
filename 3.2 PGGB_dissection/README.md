@@ -169,3 +169,51 @@ paste temp_head temp_tail |awk '{print $1-$2}' >> orthology_distance
 done
 done 
 ```
+
+### 8. heatmap
+```
+cd /share/org/YZWL/yzwl_zhangwg/OR_project/1.pangenome/1.3bos_PGGB/pan_cattle31_new/new_work/6.heatmap
+awk '{print $1}' coding.anno.update > coding.anno.update.col1
+awk '{print $2}' coding.anno.update | awk -F '_' '{print $1}' |paste coding.anno.update.col1 - |sort -k1,1 -k2,2 |uniq -c  > coding.count
+cat coding.anno.update unvalidated_pseudo.bed.anno validated_pseudo.bed.anno |awk '{print $1}'  > coding_pseudo.col1
+cat coding.anno.update unvalidated_pseudo.bed.anno validated_pseudo.bed.anno |awk '{print $2}' | awk -F '_' '{print $1}' |paste coding_pseudo.col1 - |sort -k1,1 -k2,2 |uniq -c  > coding_pseudo.count
+
+#R
+setwd("/share/org/YZWL/yzwl_zhangwg/OR_project/1.pangenome/1.3bos_PGGB/pan_cattle31_new/new_work/6.heatmap")
+df=read.table("coding.count",head=F)
+or=unique(df$V2)
+gen=unique(df$V3)
+or_count=as.data.frame(matrix(0,nrow=length(or),ncol=length(gen)))
+colnames(or_count)=gen
+rownames(or_count)=or
+for(i in 1:nrow(df)){
+or_count[which(rownames(or_count)==df[i,2]),which(colnames(or_count)==df[i,3])]=df[i,1]
+}
+or_count <- or_count[apply(or_count, 1, function(x) var(x, na.rm = TRUE)) != 0, ]
+sampleanno=read.table("annotation.txt",head=F,sep="\t")
+colnames(sampleanno)=c("name","lineage","PC1")
+rownames(sampleanno)=sampleanno[,1]
+sampleanno[,1]=1
+png("PGGB_coding_dosage.png",width=2000,height=2000,res=300)
+pheatmap(or_count,annotation_col=sampleanno,color = colorRampPalette(colors = c("white","red"))(100))
+dev.off()
+
+setwd("/share/org/YZWL/yzwl_zhangwg/OR_project/1.pangenome/1.3bos_PGGB/pan_cattle31_new/new_work/6.heatmap")
+df=read.table("coding_pseudo.count",head=F)
+or=unique(df$V2)
+gen=unique(df$V3)
+or_count=as.data.frame(matrix(0,nrow=length(or),ncol=length(gen)))
+colnames(or_count)=gen
+rownames(or_count)=or
+for(i in 1:nrow(df)){
+or_count[which(rownames(or_count)==df[i,2]),which(colnames(or_count)==df[i,3])]=df[i,1]
+}
+or_count <- or_count[apply(or_count, 1, function(x) var(x, na.rm = TRUE)) != 0, ]
+sampleanno=read.table("annotation.txt",head=F,sep="\t")
+colnames(sampleanno)=c("name","lineage","PC1")
+rownames(sampleanno)=sampleanno[,1]
+sampleanno[,1]=1
+png("PGGB_coding_pseudo_dosage.png",width=2000,height=2000,res=300)
+pheatmap(or_count,annotation_col=sampleanno,color = colorRampPalette(colors = c("white","red"))(100))
+dev.off()
+```
