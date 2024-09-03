@@ -154,3 +154,18 @@ cor.test(abs(df1$V4-df1$V2),df1$V5)
  plot(abs(df1$V4-df1$V2),df1$V5,xlab="Distance",ylab="Similarity")
 abline(model, col="blue",lwd=4)
 ```
+
+### 7. Orthology OR distance 
+```
+cd /share/org/YZWL/yzwl_zhangwg/OR_project/1.pangenome/1.3bos_PGGB/pan_cattle31_new/new_work/3.classification
+for or in `cut -d ' ' -f1 coding.anno.update.cattle |sort |uniq` ; do
+echo $or
+testor=$(cat unvalidated_pseudo.bed.anno.cattle validated_pseudo.bed.anno.cattle coding.anno.update.cattle |awk -v a=$or '$1==a {print $2}' )
+echo $testor |tr ' ' '\n' | awk -F'_' '{print $1,$2,$3}' > temp
+for gen in `cut -d' ' -f1 temp |sort |uniq`; do
+awk -v a=$gen '$1==a {print $3}' temp |sort -k1,1n |sed '1d' > temp_head
+awk -v a=$gen '$1==a {print $3}' temp |sort -k1,1n |sed '$d' > temp_tail
+paste temp_head temp_tail |awk '{print $1-$2}' >> orthology_distance
+done
+done 
+```
