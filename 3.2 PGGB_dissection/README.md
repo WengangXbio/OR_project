@@ -1,6 +1,6 @@
 ## PGGB dissection
 #### Try to solve OR copy number and so forth questions
-
+The last workflow is recorded here "/share/org/YZWL/yzwl_zhangwg/OR_project/1.pangenome/1.4pig_PGGB/work"
 ### 1. reannotation
 ```
 ###recreate OR bed with new name, and clue file (all_coding_annotation.rename.bed.clue)
